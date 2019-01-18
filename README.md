@@ -1,7 +1,7 @@
 What is MSGReader
 =========
 
-MSGReader is a C# .NET 4.0 library to read Outlook MSG and EML (Mime 1.0) files. Almost all common object in Outlook are supported:
+MSGReader is a C# .NET 4.5 and Standard 2.0 (supports C# .NET 4.6.1 and up) library to read Outlook MSG and EML (Mime 1.0) files. Almost all common object in Outlook are supported:
 
 - E-mail
 - Appointment
@@ -18,6 +18,51 @@ It supports all body types there are in MSG files, this includes:
 
 MSGReader has only a few options to manipulate an MSG file. The only option you have is that you can remove attachments and then save the file to a new one.
 
+If you realy want to write MSG files then see my MsgKit project on GitHub (https://github.com/Sicos1977/MsgKit)
+
+Read properties from an Outlook (msg) message
+============
+```
+using (var msg = new MsgReader.Outlook.Storage.Message("d:\\testfile.msg"))
+{
+        var from = msg.Sender;
+        var sentOn = msg.SentOn;
+        var recipientsTo = msg.GetEmailRecipients(Storage.Recipient.RecipientType.To, false, false);
+        var recipientsCc = msg.GetEmailRecipients(Storage.Recipient.RecipientType.Cc, false, false);
+        var subject = msg.Subject
+        var htmlBody = msg.BodyHtml;
+        // etc...
+}
+```
+
+Read properties from an Outlook (eml) message
+============
+```
+var fileInfo = new FileInfo("d:\\testfile.eml");
+var eml = MsgReader.Mime.Message.Load(fi);
+
+if (eml.Headers != null)
+{
+        if (eml.Headers.To != null)
+        {
+            foreach (var recipient in eml.Headers.To)
+            {
+                var to = recipient.Address;            
+            }
+        }
+}
+
+var subject = eml.Headers.Subject;
+
+if (eml.TextBody != null)
+        var textBody = System.Text.Encoding.UTF8.GetString(eml.TextBody.Body);
+
+if (eml.HtmlBody != null)
+        var htmlBody = System.Text.Encoding.UTF8.GetString(eml.TextBody.Body);
+
+// etc...
+```
+
 Translations
 ============
 
@@ -30,6 +75,9 @@ Translations
 
 - Yan Grenier (@ygrenier on GitHub)
     - French
+
+- xupefei
+    - Simpl Chinese
 
 Installing via NuGet
 ====================
@@ -51,23 +99,34 @@ Regasm.exe /codebase MsgReader.dll
 
 After that you can call it like this:
 
+```
 dim msgreader
 
 set msgreader = createobject("MsgReader.Reader")
-
 msgreader.ExtractToFolderFromCom "the msg file to read", "the folder where to place the extracted files"
+```
 
+## License Information
 
-License
-=======
+MsgReader is Copyright (C) 2013-2018 Magic-Sessions and is licensed under the MIT license:
 
-Copyright 2013-2016 Kees van Spelde.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-Licensed under the The Code Project Open License (CPOL) 1.02; you may not use this software except in compliance with the License. You may obtain a copy of the License at:
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-http://www.codeproject.com/info/cpol10.aspx
-
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
 
 Core Team
 =========

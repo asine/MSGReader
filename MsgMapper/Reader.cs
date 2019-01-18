@@ -1,24 +1,34 @@
-﻿using System;
+﻿//
+// Reader.cs
+//
+// Author: Kees van Spelde <sicos2002@hotmail.com>
+//
+// Copyright (c) 2013-2018 Magic-Sessions. (www.magic-sessions.com)
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+
+using System;
 using System.IO;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using MsgReader.Outlook;
-
-/*
-   Copyright 2013-2016 Kees van Spelde
-
-   Licensed under The Code Project Open License (CPOL) 1.02;
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-     http://www.codeproject.com/info/cpol10.aspx
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
 
 namespace MsgMapper
 {
@@ -56,26 +66,26 @@ namespace MsgMapper
                         {
                             switch (message.Type)
                             {
-                                case Storage.Message.MessageType.Email:
+                                case MessageType.Email:
                                     MapEmailPropertiesToExtendedFileAttributes(message, propertyWriter);
                                     break;
 
-                                case Storage.Message.MessageType.AppointmentRequest:
-                                case Storage.Message.MessageType.Appointment:
-                                case Storage.Message.MessageType.AppointmentResponse:
+                                case MessageType.AppointmentRequest:
+                                case MessageType.Appointment:
+                                case MessageType.AppointmentResponse:
                                     MapAppointmentPropertiesToExtendedFileAttributes(message, propertyWriter);
                                     break;
 
-                                case Storage.Message.MessageType.Task:
-                                case Storage.Message.MessageType.TaskRequestAccept:
+                                case MessageType.Task:
+                                case MessageType.TaskRequestAccept:
                                     MapTaskPropertiesToExtendedFileAttributes(message, propertyWriter);
                                     break;
 
-                                case Storage.Message.MessageType.Contact:
+                                case MessageType.Contact:
                                     MapContactPropertiesToExtendedFileAttributes(message, propertyWriter);
                                     break;
 
-                                case Storage.Message.MessageType.Unknown:
+                                case MessageType.Unknown:
                                     throw new NotSupportedException("Unsupported message type");
                             }
                         }
@@ -107,15 +117,15 @@ namespace MsgMapper
 
             // To
             propertyWriter.WriteProperty(SystemProperties.System.Message.ToAddress,
-                message.GetEmailRecipients(Storage.Recipient.RecipientType.To, false, false));
+                message.GetEmailRecipients(RecipientType.To, false, false));
 
             // CC
             propertyWriter.WriteProperty(SystemProperties.System.Message.CcAddress,
-                message.GetEmailRecipients(Storage.Recipient.RecipientType.Cc, false, false));
+                message.GetEmailRecipients(RecipientType.Cc, false, false));
 
             // BCC
             propertyWriter.WriteProperty(SystemProperties.System.Message.BccAddress,
-                message.GetEmailRecipients(Storage.Recipient.RecipientType.Bcc, false, false));
+                message.GetEmailRecipients(RecipientType.Bcc, false, false));
 
             // Subject
             propertyWriter.WriteProperty(SystemProperties.System.Subject, message.Subject);
@@ -217,7 +227,7 @@ namespace MsgMapper
 
             // Recurrence type
             propertyWriter.WriteProperty(SystemProperties.System.Calendar.IsRecurring,
-                message.Appointment.ReccurrenceType != Storage.Appointment.AppointmentRecurrenceType.None);
+                message.Appointment.ReccurrenceType != AppointmentRecurrenceType.None);
 
             // Status
             propertyWriter.WriteProperty(SystemProperties.System.Status, message.Appointment.ClientIntentText);
@@ -230,7 +240,7 @@ namespace MsgMapper
             propertyWriter.WriteProperty(SystemProperties.System.Calendar.RequiredAttendeeNames, message.Appointment.ToAttendees);
 
             // Optional participants (CC)
-            propertyWriter.WriteProperty(SystemProperties.System.Calendar.OptionalAttendeeNames, message.Appointment.CclAttendees);
+            propertyWriter.WriteProperty(SystemProperties.System.Calendar.OptionalAttendeeNames, message.Appointment.CcAttendees);
 
             // Categories
             var categories = message.Categories;

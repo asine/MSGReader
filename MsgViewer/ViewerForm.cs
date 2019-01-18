@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using MsgReader;
@@ -9,7 +11,7 @@ using MsgViewer.Helpers;
 using MsgViewer.Properties;
 
 /*
-   Copyright 2013-2016 Kees van Spelde
+   Copyright 2013-2018 Kees van Spelde
 
    Licensed under The Code Project Open License (CPOL) 1.02;
    you may not use this file except in compliance with the License.
@@ -46,6 +48,12 @@ namespace MsgViewer
             WindowPlacement.SetPlacement(Handle, Settings.Default.Placement);
             Closing += ViewerForm_Closing;
             genereateHyperlinksToolStripMenuItem.Checked = Settings.Default.GenereateHyperLinks;
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            
+            // ReSharper disable LocalizableElement
+            Text = "MSG Viewer v" + version.Major + "." + version.Minor + "." + version.Build;
+            // ReSharper restore LocalizableElement
+
             SetCulture(Settings.Default.Language);
 
             var args = Environment.GetCommandLineArgs();
@@ -182,7 +190,21 @@ namespace MsgViewer
                 _tempFolders.Add(tempFolder);
 
                 var msgReader = new Reader();
-                var files = msgReader.ExtractToFolder(fileName, tempFolder, genereateHyperlinksToolStripMenuItem.Checked);
+
+                // Use this, if you want to extract the code in memory
+                // using (var streamReader = new StreamReader(fileName))
+                // {
+                //     string _body = msgReader.ExtractMsgEmailBody(streamReader.BaseStream, true, "text/html; charset=utf-8");
+                // }
+
+                var files = msgReader.ExtractToFolder(
+                    fileName,
+                    tempFolder,
+                    genereateHyperlinksToolStripMenuItem.Checked);
+
+                // Use this, if you want to display a header table elsewhere but not in the webbrowser
+                // var header = msgReader.ExtractMsgEmailHeader(new Storage.Message(fileName), true);
+
                 var error = msgReader.GetErrorMessage();
 
                 if (!string.IsNullOrEmpty(error))
@@ -234,6 +256,8 @@ namespace MsgViewer
                 Settings.Default.Language = 3;
             else if (sender == LanguageDutchMenuItem)
                 Settings.Default.Language = 4;
+            else if (sender == LanguageSimpChineseMenuItem)
+                Settings.Default.Language = 5;
 
             SetCulture(Settings.Default.Language);
             Settings.Default.Save();
@@ -251,6 +275,7 @@ namespace MsgViewer
             LanguageFrenchMenuItem.Checked = false;
             LanguageGermanMenuItem.Checked = false;
             LanguageDutchMenuItem.Checked = false;
+            LanguageSimpChineseMenuItem.Checked = false;
 
             switch (culture)
             {
@@ -274,7 +299,26 @@ namespace MsgViewer
                     Thread.CurrentThread.CurrentUICulture = new CultureInfo("nl-NL");
                     LanguageDutchMenuItem.Checked = true;
                     break;
+                case 5:
+                    Thread.CurrentThread.CurrentCulture = new CultureInfo("zh-CN");
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
+                    LanguageSimpChineseMenuItem.Checked = true;
+                    break;
             }
+        }
+        #endregion
+
+        #region FilesListBox_DoubleClick
+        private void FilesListBox_DoubleClick(object sender, EventArgs e)
+        {
+            if (FilesListBox.Items.Count <= 0) return;
+            var file = FilesListBox.SelectedItem as string;
+            if (string.IsNullOrEmpty(file) || !File.Exists(file)) return;
+            var fileInfo = new FileInfo(file);
+            if (fileInfo.Extension.ToLowerInvariant() == ".msg")
+                Process.Start(Application.ExecutablePath, file);
+            else
+                Process.Start(file);
         }
         #endregion
     }
